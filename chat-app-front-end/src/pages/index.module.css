@@ -1,59 +1,49 @@
-.main {
+.container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  padding: 0 2rem;
-}
-
-.chatContainer {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 500px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  padding: 20px;
-  background-color: #f9f9f9;
-}
-
-.messages {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 10px;
-  max-height: 300px;
-  overflow-y: scroll;
-  margin-bottom: 20px;
-  background-color: #fff;
-}
-
-.messages p {
+  align-items: center;
+  height: 100vh;
   margin: 0;
-  padding: 5px;
-  border-bottom: 1px solid #eee;
 }
 
-.input {
-  padding: 10px;
+.formContainer {
+  width: 300px;
+  padding: 20px;
   border: 1px solid #ddd;
   border-radius: 5px;
-  margin-bottom: 10px;
-  width: calc(100% - 20px);
+}
+
+.error {
+  color: red;
+  margin-bottom: 15px;
+}
+
+.inputGroup {
+  margin-bottom: 15px;
+}
+
+.inputGroup label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.inputGroup input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
 }
 
 .button {
-  padding: 10px 20px;
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: #fff;
   border: none;
   border-radius: 5px;
-  background-color: #0070f3;
-  color: white;
   cursor: pointer;
-  width: 100%;
 }
 
 .button:hover {
-  background-color: #005bb5;
+  background-color: #0056b3;
 }
