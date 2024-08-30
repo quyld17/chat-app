@@ -27,8 +27,7 @@ CREATE TABLE `messages` (
 );
 
 CREATE TABLE `status` (
-  `user_id` integer NOT NULL,
-  `is_online` boolean DEFAULT false
+  `user_id` integer NOT NULL
 );
 
 ALTER TABLE `chat_participants` ADD FOREIGN KEY (`room_id`) REFERENCES `chats` (`id`);

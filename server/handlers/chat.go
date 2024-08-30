@@ -1,24 +1,24 @@
 package handlers
 
-import (
-	"database/sql"
-	// "log"
-	"net/http"
-	// "strconv"
+// import (
+// 	"database/sql"
+// 	// "log"
+// 	"net/http"
+// 	// "strconv"
 
-	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
-)
+// 	"github.com/gorilla/websocket"
+// 	"github.com/labstack/echo/v4"
+// )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
+// var upgrader = websocket.Upgrader{
+// 	ReadBufferSize:  1024,
+// 	WriteBufferSize: 1024,
+// 	CheckOrigin: func(r *http.Request) bool {
+// 		return true
+// 	},
+// }
 
-func ChatWebSocket(c echo.Context, db *sql.DB) error {
+// func ChatWebSocket(c echo.Context, db *sql.DB) error {
 	// conversationID := c.Param("conversation_id")
 	// convID, err := strconv.Atoi(conversationID)
 	// if err != nil {
@@ -57,5 +57,5 @@ func ChatWebSocket(c echo.Context, db *sql.DB) error {
 	// 	// Broadcast the message to other connected clients (implement client tracking)
 	// }
 
-	return nil
-}
+// 	return nil
+// }

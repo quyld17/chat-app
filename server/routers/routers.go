@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/quyld17/chat-app/handlers"
+	"github.com/quyld17/chat-app/middlewares"
 )
 
 func RegisterAPIHandlers(router *echo.Echo, db *sql.DB) {
@@ -17,10 +18,11 @@ func RegisterAPIHandlers(router *echo.Echo, db *sql.DB) {
 	})
 
 	// WebSocket routes
-	// router.GET("/ws/online", func(c echo.Context) error {
-	// 	return handlers.OnlineStatus(c, db)
-	// }
-	router.GET("/ws/:conversation_id", func(c echo.Context) error {
-		return handlers.ChatWebSocket(c, db)
-	})
+	router.POST("/ws/online", middlewares.JWTAuthorize(func(c echo.Context) error {
+		return handlers.UpdateStatus(c, db)
+	}))
+
+	// router.GET("/ws/:conversation_id", func(c echo.Context) error {
+	// 	return handlers.ChatWebSocket(c, db)
+	// })
 }

@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/quyld17/chat-app/entities/users"
-	"github.com/quyld17/chat-app/services/jwt"
+	jwtService "github.com/quyld17/chat-app/services/jwt"
 )
 
 func SignIn(c echo.Context, db *sql.DB) error {
@@ -20,7 +20,7 @@ func SignIn(c echo.Context, db *sql.DB) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
 
-	token, err := jwt.Generate(account.Username)
+	token, err := jwtService.Generate(account.Username)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
