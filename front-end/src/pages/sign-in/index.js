@@ -50,7 +50,7 @@ export default function SignInPage() {
       handleSignInAPI(username, password)
         .then((data) => {
           localStorage.setItem("token", data.token);
-          router.push("/");
+          router.push("/chat");
         })
         .catch((error) => {
           console.log("Error getting delivery address: ", error);

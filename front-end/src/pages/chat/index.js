@@ -2,22 +2,38 @@ import Head from "next/head";
 import { Inter } from "next/font/google";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
+import { message } from "antd";
+
 import styles from "./index.module.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Chat() {
+  const [token, setToken] = useState("");
+  const [username, setUsername] = useState("");
   const [socket, setSocket] = useState(null);
-  const [message, setMessage] = useState("");
+  const [messageInput, setMessageInput] = useState(""); // Renamed to avoid conflict with message from Ant Design
   const [messages, setMessages] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
-
     if (!storedToken) {
       router.push("/");
       return;
+    }
+    setToken(storedToken);
+
+    const decodedToken = jwtDecode(storedToken);
+    const expTime = decodedToken.exp;
+    const currentTime = Date.now() / 1000;
+
+    if (currentTime > expTime) {
+      message.info("Session expired! Please sign in to continue");
+      handleSignOut();
+    } else {
+      setUsername(decodedToken.username);
     }
 
     const ws = new WebSocket("ws://localhost:8080/ws");
@@ -31,12 +47,12 @@ export default function Chat() {
     return () => {
       ws.close();
     };
-  }, []);
+  }, [router]);
 
-  const sendMessage = () => {
-    if (socket && message.trim() !== "") {
-      socket.send(message);
-      setMessage("");
+  const handleSendMessage = () => {
+    if (socket && messageInput.trim() !== "") {
+      socket.send(messageInput);
+      setMessageInput("");
     }
   };
 
@@ -44,6 +60,13 @@ export default function Chat() {
     if (event.key === "Enter") {
       sendMessage();
     }
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem("token");
+    setToken("");
+    router.push("/");
+    message.success("Sign out successfully!");
   };
 
   return (
@@ -56,7 +79,8 @@ export default function Chat() {
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
         <div className={styles.chatContainer}>
-          <h1>WebSocket Chat</h1>
+          <h1>Chat App</h1>
+          <p>{username}</p>
           <div className={styles.messages}>
             {messages.map((msg, index) => (
               <p key={index}>{msg}</p>
@@ -64,14 +88,17 @@ export default function Chat() {
           </div>
           <input
             type="text"
-            value={message}
+            value={messageInput}
             onKeyUp={handleKeyPress}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => setMessageInput(e.target.value)}
             placeholder="Enter your message"
             className={styles.input}
           />
-          <button onClick={sendMessage} className={styles.button}>
+          <button onClick={handleSendMessage} className={styles.button}>
             Send
+          </button>
+          <button onClick={handleSignOut} className={styles.button}>
+            Sign out
           </button>
         </div>
       </main>
