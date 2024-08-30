@@ -5,14 +5,14 @@ CREATE TABLE `users` (
   `created_at` timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
-CREATE TABLE `rooms` (
+CREATE TABLE `chats` (
   `id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `name` varchar(255),
   `is_group` boolean DEFAULT false,
   `created_at` timestamp NOT NULL
 );
 
-CREATE TABLE `room_participants` (
+CREATE TABLE `chat_participants` (
   `id` integer PRIMARY KEY NOT NULL,
   `room_id` integer NOT NULL,
   `user_id` integer NOT NULL
@@ -26,10 +26,17 @@ CREATE TABLE `messages` (
   `created_at` timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
-ALTER TABLE `room_participants` ADD FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`);
+CREATE TABLE `status` (
+  `user_id` integer NOT NULL,
+  `is_online` boolean DEFAULT false
+);
 
-ALTER TABLE `room_participants` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+ALTER TABLE `chat_participants` ADD FOREIGN KEY (`room_id`) REFERENCES `chats` (`id`);
+
+ALTER TABLE `chat_participants` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 ALTER TABLE `messages` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
-ALTER TABLE `messages` ADD FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`);
+ALTER TABLE `messages` ADD FOREIGN KEY (`room_id`) REFERENCES `chats` (`id`);
+
+ALTER TABLE `status` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);

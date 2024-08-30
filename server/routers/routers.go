@@ -15,4 +15,12 @@ func RegisterAPIHandlers(router *echo.Echo, db *sql.DB) {
 	router.POST("/sign-in", func(c echo.Context) error {
 		return handlers.SignIn(c, db)
 	})
+
+	// WebSocket routes
+	// router.GET("/ws/online", func(c echo.Context) error {
+	// 	return handlers.OnlineStatus(c, db)
+	// }
+	router.GET("/ws/:conversation_id", func(c echo.Context) error {
+		return handlers.ChatWebSocket(c, db)
+	})
 }

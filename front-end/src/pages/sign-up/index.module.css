@@ -1,0 +1,49 @@
+.navigationBar {
+  display: flex;
+  align-items: center;
+  justify-self: space-between;
+}
+
+.websiteLogo {
+  color: white;
+  margin-left: 20px;
+}
+
+.mainPage {
+  background-color: white;
+}
+
+.content {
+  margin: 24px 0;
+  padding: 24px;
+  display: flex;
+  align-self: center;
+  width: 500px;
+  border-radius: 14px;
+  background-color: #fff;
+  box-shadow: 0 2px 30px rgba(0, 0, 0, 0.1);
+}
+
+.signUpForm {
+  width: 452px;
+  display: inline-block;
+}
+
+.signUpTitle {
+  font-size: 50px;
+  margin-bottom: 50px;
+  text-align: center;
+}
+
+.signUpButton {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.alreadyHadAnAccount {
+  text-align: center;
+}
+
+.signInButton {
+  color: lightskyblue;
+}
