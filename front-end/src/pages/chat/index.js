@@ -6,6 +6,7 @@ import { jwtDecode } from "jwt-decode";
 import { message } from "antd";
 
 import styles from "./index.module.css";
+import { OnlineList } from "../../components/online-list/index";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -13,7 +14,7 @@ export default function Chat() {
   const [token, setToken] = useState("");
   const [username, setUsername] = useState("");
   const [socket, setSocket] = useState(null);
-  const [messageInput, setMessageInput] = useState(""); // Renamed to avoid conflict with message from Ant Design
+  const [messageInput, setMessageInput] = useState("");
   const [messages, setMessages] = useState([]);
   const router = useRouter();
 
@@ -36,7 +37,9 @@ export default function Chat() {
       setUsername(decodedToken.username);
     }
 
-    const ws = new WebSocket("ws://localhost:8080/ws");
+    const ws = new WebSocket(
+      `ws://localhost:8080/ws/online?token=${storedToken}`
+    );
 
     ws.onmessage = function (event) {
       setMessages((prevMessages) => [...prevMessages, event.data]);
@@ -58,7 +61,7 @@ export default function Chat() {
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
-      sendMessage();
+      handleSendMessage();
     }
   };
 
@@ -77,7 +80,9 @@ export default function Chat() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+
       <main className={`${styles.main} ${inter.className}`}>
+        <OnlineList token={token} />
         <div className={styles.chatContainer}>
           <h1>Chat App</h1>
           <p>{username}</p>
