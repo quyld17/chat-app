@@ -9,7 +9,7 @@ import (
 )
 
 func RegisterAPIHandlers(router *echo.Echo, db *sql.DB) {
-	//Authentication
+	// Authentication
 	router.POST("/sign-up", func(c echo.Context) error {
 		return handlers.SignUp(c, db)
 	})
@@ -18,10 +18,14 @@ func RegisterAPIHandlers(router *echo.Echo, db *sql.DB) {
 	})
 
 	// WebSocket routes
-	router.POST("/ws/online", middlewares.JWTAuthorize(func(c echo.Context) error {
+	router.GET("/ws/online", middlewares.JWTAuthorize(func(c echo.Context) error {
 		return handlers.UpdateStatus(c, db)
 	}))
+	router.GET("/ws/online-list", middlewares.JWTAuthorize(func(c echo.Context) error {
+		return handlers.GetOnlineList(c, db)
+	}))
 
+	// Additional WebSocket routes
 	// router.GET("/ws/:conversation_id", func(c echo.Context) error {
 	// 	return handlers.ChatWebSocket(c, db)
 	// })

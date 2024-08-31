@@ -5,34 +5,41 @@ import (
 	"os"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	jwtService "github.com/quyld17/chat-app/services/jwt"
 )
 
+var Upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
 func JWTAuthorize(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		err := godotenv.Load(".env")
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
-		}
+		// tokenString := jwtService.GetToken(c)
+		// if tokenString == "" {
+		// 	return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: Missing token")
+		// }
 
-		tokenString := jwtService.GetToken(c)
+		tokenString := c.QueryParam("token") // Extract token from query parameter
 		if tokenString == "" {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
+			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: Missing token")
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
 		})
 		if err != nil || !token.Valid {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
+			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: Invalid token")
 		}
 
 		username := jwtService.GetClaims(token, "username")
 		if username == "" {
-			return echo.NewHTTPError(http.StatusBadRequest, "Invalid claims")
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid token claims: Missing username")
 		}
+
 		c.Set("username", username)
 
 		return next(c)

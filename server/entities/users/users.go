@@ -16,6 +16,10 @@ type Users struct {
 	CreatedAt time.Time `json:"cratedAt"`
 }
 
+type Status struct {
+	Id int `json:"id"`
+}
+
 func Authenticate(account Users, db *sql.DB) error {
 	var storedPassword string
 
@@ -62,4 +66,28 @@ func GetID(c echo.Context, db *sql.DB) (int, error) {
 		return 0, err
 	}
 	return userID, nil
+}
+
+func GetOnlineList(c echo.Context, db *sql.DB) ([]Users, error) {
+	rows, err := db.Query(`
+		SELECT 	status.user_id, 
+				users.username
+		FROM status
+		JOIN users ON status.user_id = users.id;`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	list := []Users{}
+	for rows.Next() {
+		var user Users
+		err := rows.Scan(&user.Id, &user.Username)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, user)
+	}
+
+	return list, nil
 }
