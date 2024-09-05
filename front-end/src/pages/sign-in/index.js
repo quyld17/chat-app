@@ -7,8 +7,9 @@ import styles from "./index.module.css";
 import handleSignInAPI from "../../apis/handlers/sign-in";
 
 import { Layout, theme, Form, Input, Button, message } from "antd";
+import { GetToken } from "../../components/jwt/index";
 
-const { Content, Header } = Layout;
+const { Content } = Layout;
 
 const credentialsValidate = (username, password) => {
   const formValidate = () => {
@@ -32,9 +33,9 @@ export default function SignInPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+    const token = GetToken();
 
-    if (storedToken) {
+    if (token) {
       router.push("/chat");
       return;
     }

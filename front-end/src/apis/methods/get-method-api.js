@@ -1,7 +1,9 @@
-import getJWT from "../../components/jwt";
+import { GetToken } from "../../components/jwt/index";
+import { ServerURL } from "../urls";
 
 export default function getMethodAPI(endpoint, successCallback, errorCallback) {
-  const { baseURL, token } = getJWT();
+  const baseURL = ServerURL();
+  const token = GetToken();
 
   fetch(baseURL + endpoint, {
     method: "GET",
