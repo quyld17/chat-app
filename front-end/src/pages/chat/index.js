@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { message } from "antd";
 
 import styles from "./index.module.css";
-// import { OnlineList } from "../../components/online-list/index";
+import { OnlineList } from "../../components/online-list/index";
 import { OnlineStatus } from "../../components/status/index";
 import {
   CheckTokenExpireTime,
@@ -66,7 +66,9 @@ export default function Chat() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <OnlineStatus token={token} />
+
       <main className={`${styles.main} ${inter.className}`}>
+        <OnlineList />
         <div className={styles.chatContainer}>
           <h1>Chat App</h1>
           <p>{username}</p>
