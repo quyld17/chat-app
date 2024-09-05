@@ -17,16 +17,11 @@ func RegisterAPIHandlers(router *echo.Echo, db *sql.DB) {
 		return handlers.SignIn(c, db)
 	})
 
-	// WebSocket routes
-	router.GET("/ws/online", middlewares.JWTAuthorize(func(c echo.Context) error {
-		return handlers.UpdateStatus(c, db)
-	}))
-	router.GET("/ws/online-list", middlewares.JWTAuthorize(func(c echo.Context) error {
+	router.GET("/online-list", middlewares.JWTAuthorize(func(c echo.Context) error {
 		return handlers.GetOnlineList(c, db)
 	}))
 
-	// Additional WebSocket routes
-	// router.GET("/ws/:conversation_id", func(c echo.Context) error {
-	// 	return handlers.ChatWebSocket(c, db)
-	// })
+	router.GET("/ws/status", middlewares.JWTAuthorize(func(c echo.Context) error {
+		return handlers.UpdateStatus(c, db)
+	}))
 }

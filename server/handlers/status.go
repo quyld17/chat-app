@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"log"
-	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/quyld17/chat-app/entities/status"
@@ -14,20 +13,23 @@ import (
 func UpdateStatus(c echo.Context, db *sql.DB) error {
 	ws, err := middlewares.Upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
+		log.Printf("WebSocket upgrade failed: %v", err)
 		return err
 	}
 	defer ws.Close()
 
-	userID, err := users.GetID(c, db)
+	userId, err := users.GetID(c, db)
 	if err != nil {
-		log.Println("Error retrieving user ID:", err)
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+		log.Printf("Failed to retrieve user id: %v", err)
+		middlewares.SendWebSocketError(ws, "Failed to update user status")
+		return nil
 	}
 
-	err = status.Update(db, userID)
+	err = status.Update(db, userId)
 	if err != nil {
-		log.Println("Error updating status to online:", err)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not update status to online"})
+		log.Printf("Failed to update user status: %v", err)
+		middlewares.SendWebSocketError(ws, "Failed to update user status")
+		return nil
 	}
 
 	for {
@@ -35,12 +37,11 @@ func UpdateStatus(c echo.Context, db *sql.DB) error {
 		if err != nil {
 			log.Println("WebSocket error:", err)
 
-			// Remove the user's status from the database on disconnect
-			err = status.Remove(db, userID)
+			err = status.Remove(db, userId)
 			if err != nil {
 				log.Println("Error removing user from status table:", err)
 			}
-			log.Printf("User %s is offline and removed from the status table.", userID)
+			log.Printf("User %s is offline and removed from the status table.", userId)
 			break
 		}
 	}

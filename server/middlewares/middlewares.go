@@ -18,14 +18,12 @@ var Upgrader = websocket.Upgrader{
 
 func JWTAuthorize(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// tokenString := jwtService.GetToken(c)
-		// if tokenString == "" {
-		// 	return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: Missing token")
-		// }
-
-		tokenString := c.QueryParam("token") // Extract token from query parameter
+		tokenString := jwtService.GetToken(c)
 		if tokenString == "" {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: Missing token")
+			tokenString = c.QueryParam("token")
+			if tokenString == "" {
+				return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: Missing token")
+			}
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -44,6 +42,11 @@ func JWTAuthorize(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return next(c)
 	}
+}
+
+func SendWebSocketError(ws *websocket.Conn, message string) {
+	errMsg := map[string]string{"error": message}
+	ws.WriteJSON(errMsg)
 }
 
 // func Pagination(c echo.Context, itemsPerPage int) (int, error) {

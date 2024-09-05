@@ -51,6 +51,7 @@ func Create(newUser Users, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	
 	return nil
 }
 
@@ -65,6 +66,7 @@ func GetID(c echo.Context, db *sql.DB) (int, error) {
 	if err := row.Scan(&userID); err != nil {
 		return 0, err
 	}
+
 	return userID, nil
 }
 
