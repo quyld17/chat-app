@@ -41,7 +41,7 @@ func UpdateStatus(c echo.Context, db *sql.DB) error {
 			if err != nil {
 				log.Println("Error removing user from status table:", err)
 			}
-			log.Printf("User %s is offline and removed from the status table.", userId)
+			log.Printf("User %d is offline and removed from the status table.", userId)
 			break
 		}
 	}
