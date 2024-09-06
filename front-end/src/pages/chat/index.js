@@ -1,5 +1,4 @@
 import Head from "next/head";
-import { Inter } from "next/font/google";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { message } from "antd";
@@ -12,8 +11,6 @@ import {
   DecodeToken,
   GetToken,
 } from "../../components/jwt/index";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export default function Chat() {
   const [token, setToken] = useState("");
@@ -67,7 +64,7 @@ export default function Chat() {
       </Head>
       <OnlineStatus token={token} />
 
-      <main className={`${styles.main} ${inter.className}`}>
+      <main className={styles.main}>
         <OnlineList />
         <div className={styles.chatContainer}>
           <h1>Chat App</h1>
