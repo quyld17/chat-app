@@ -9,11 +9,11 @@ CREATE TABLE `rooms` (
   `id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `name` varchar(255),
   `is_group` boolean DEFAULT false,
-  `created_at` timestamp NOT NULL
+  `created_at` timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 CREATE TABLE `chat_participants` (
-  `id` integer PRIMARY KEY NOT NULL,
+  `id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `room_id` integer NOT NULL,
   `user_id` integer NOT NULL
 );
@@ -30,7 +30,7 @@ CREATE TABLE `status` (
   `user_id` integer NOT NULL
 );
 
-ALTER TABLE `chat_participants` ADD FOREIGN KEY (`room_id`) REFERENCES `chats` (`id`);
+ALTER TABLE `chat_participants` ADD FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`);
 
 ALTER TABLE `chat_participants` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 

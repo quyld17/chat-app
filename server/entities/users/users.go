@@ -55,7 +55,7 @@ func Create(newUser Users, db *sql.DB) error {
 	return nil
 }
 
-func GetID(c echo.Context, db *sql.DB) (int, error) {
+func GetId(c echo.Context, db *sql.DB) (int, error) {
 	username := c.Get("username").(string)
 	row := db.QueryRow(`
 		SELECT id

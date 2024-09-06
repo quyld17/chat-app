@@ -18,7 +18,7 @@ func UpdateStatus(c echo.Context, db *sql.DB) error {
 	}
 	defer ws.Close()
 
-	userId, err := users.GetID(c, db)
+	userId, err := users.GetId(c, db)
 	if err != nil {
 		log.Printf("Failed to retrieve user id: %v", err)
 		middlewares.SendWebSocketError(ws, "Failed to update user status")

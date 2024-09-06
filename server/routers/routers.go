@@ -24,4 +24,8 @@ func RegisterAPIHandlers(router *echo.Echo, db *sql.DB) {
 	router.GET("/online-list", middlewares.JWTAuthorize(func(c echo.Context) error {
 		return handlers.GetOnlineList(c, db)
 	}))
+
+	router.GET("/ws/chat", middlewares.JWTAuthorize(func(c echo.Context) error {
+		return handlers.Chat(c, db)
+	}))
 }
