@@ -3,18 +3,18 @@ import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { message } from "antd";
 
-import styles from "./index.module.css";
-import { OnlineList } from "../../components/online-list/index";
+import styles from "./styles.module.css";
+import { OnlineUsers } from "./online-users/index";
 import { OnlineStatus } from "../../components/status/index";
 import {
   CheckTokenExpireTime,
   DecodeToken,
   GetToken,
 } from "../../components/jwt/index";
+import { handleStartChatAPI } from "@/apis/handlers/chat";
 
 export default function Chat() {
   const [token, setToken] = useState("");
-  const [username, setUsername] = useState("");
   const [socket, setSocket] = useState(null);
   const [messageInput, setMessageInput] = useState("");
   const [messages, setMessages] = useState([]);
@@ -28,7 +28,7 @@ export default function Chat() {
     }
     setToken(storedToken);
     const decodedToken = DecodeToken(storedToken);
-    CheckTokenExpireTime(handleSignOut, setUsername, decodedToken);
+    CheckTokenExpireTime(handleSignOut, decodedToken);
   }, []);
 
   const handleSendMessage = () => {
@@ -54,8 +54,14 @@ export default function Chat() {
     message.success("Sign out successfully!");
   };
 
+  const handleStartChat = (userId) => {
+    handleStartChatAPI(token, userId, (data) => {
+      setMessages(data.messages);
+    });
+  };
+
   return (
-    <>
+    <div className={styles.page}>
       <Head>
         <title>Chat App</title>
         <meta name="description" content="Real-time chatting website" />
@@ -63,17 +69,22 @@ export default function Chat() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <OnlineStatus token={token} />
+      {/* <div> */}
+      {/* <button onClick={handleSignOut}>Sign out</button> */}
+      {/* </div> */}
+      <OnlineUsers handleStartChat={handleStartChat} />
 
-      <main className={styles.main}>
-        <OnlineList />
-        <div className={styles.chatContainer}>
-          <h1>Chat App</h1>
-          <p>{username}</p>
-          <div className={styles.messages}>
-            {messages.map((msg, index) => (
-              <p key={index}>{msg}</p>
+      <div className={styles.chatContainer}>
+        <div className={styles.messages}>
+          {messages &&
+            [...messages].reverse().map((msg, index) => (
+              <div className={styles.messageContent} key={index}>
+                <span className={styles.username}>{msg.username}:</span>
+                <span className={styles.messageText}>{msg.content}</span>
+              </div>
             ))}
-          </div>
+        </div>
+        <div className={styles.inputContainer}>
           <input
             type="text"
             value={messageInput}
@@ -85,11 +96,8 @@ export default function Chat() {
           <button onClick={handleSendMessage} className={styles.button}>
             Send
           </button>
-          <button onClick={handleSignOut} className={styles.button}>
-            Sign out
-          </button>
         </div>
-      </main>
-    </>
+      </div>
+    </div>
   );
 }

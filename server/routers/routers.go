@@ -9,7 +9,6 @@ import (
 )
 
 func RegisterAPIHandlers(router *echo.Echo, db *sql.DB) {
-	// Authentication
 	router.POST("/sign-up", func(c echo.Context) error {
 		return handlers.SignUp(c, db)
 	})

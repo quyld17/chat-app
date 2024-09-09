@@ -1,0 +1,19 @@
+.container {
+  width: 350px;
+  color: #232946;
+  background-color: #d4d8f0;
+}
+
+.headline {
+  text-align: center;
+}
+
+.usersList {
+  padding: 20px;
+}
+
+.user {
+  border-bottom: 1px solid #000000;
+  height: 50px;
+  cursor: pointer;
+}

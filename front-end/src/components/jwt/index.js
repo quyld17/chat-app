@@ -10,14 +10,12 @@ export function DecodeToken(token) {
   return decodedToken;
 }
 
-export function CheckTokenExpireTime(handleSignOut, setUsername, token) {
+export function CheckTokenExpireTime(handleSignOut, token) {
   const expTime = token.exp;
   const currentTime = Date.now() / 1000;
 
   if (currentTime > expTime) {
     message.info("Session expired! Please sign in to continue");
     handleSignOut();
-  } else {
-    setUsername(token.username);
   }
 }

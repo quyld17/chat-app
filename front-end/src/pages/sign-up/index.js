@@ -4,7 +4,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 
 import handleSignUpAPI from "../../apis/handlers/sign-up";
-import styles from "./index.module.css";
+import styles from "./styles.module.css";
 
 import { Layout, Form, Input, Button, message } from "antd";
 const { Content, Header } = Layout;

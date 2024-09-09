@@ -3,7 +3,7 @@ import Link from "next/link";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
-import styles from "./index.module.css";
+import styles from "./styles.module.css";
 import handleSignInAPI from "../../apis/handlers/sign-in";
 
 import { Layout, theme, Form, Input, Button, message } from "antd";
