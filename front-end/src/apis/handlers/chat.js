@@ -1,12 +1,21 @@
 import { message } from "antd";
 
-export function handleStartChatAPI(token, receiver_id, onMessage) {
+export function handleChatAPI(token, receiverId, messageInput, onMessage) {
   const ws = new WebSocket(
-    `ws://localhost:8080/ws/chat?token=${token}&receiver_id=${receiver_id}`
+    `ws://localhost:8080/ws/chat?token=${token}&receiver_id=${receiverId}`
   );
 
   ws.onopen = () => {
     console.log("Connected to WebSocket server");
+
+    const trimmedMessage = messageInput.trim();
+    if (!trimmedMessage) {
+      return;
+    }
+    const messageData = {
+      message: trimmedMessage,
+    };
+    ws.send(JSON.stringify(messageData));
   };
 
   ws.onmessage = (event) => {

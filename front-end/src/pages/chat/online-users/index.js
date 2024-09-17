@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import handleGetOnlineListAPI from "../../../apis/handlers/online-list";
 import styles from "./styles.module.css";
 
-export const OnlineUsers = ({ handleStartChat }) => {
+export const OnlineUsers = ({ setMessageInput, setReceiverId }) => {
   const [list, setList] = useState([]);
 
   useEffect(() => {
@@ -22,7 +22,8 @@ export const OnlineUsers = ({ handleStartChat }) => {
   }, []);
 
   const handleClick = (userId) => {
-    handleStartChat(userId);
+    setMessageInput("");
+    setReceiverId(userId);
   };
 
   return (
