@@ -18,7 +18,7 @@ type IncomingMessage struct {
 	Message string `json:"message"`
 }
 
-var userConnections = make(map[int]*websocket.Conn)
+var userConnections = make(map[int][]*websocket.Conn)
 
 func Chat(c echo.Context, db *sql.DB) error {
 	ws, err := middlewares.Upgrader.Upgrade(c.Response(), c.Request(), nil)
@@ -56,25 +56,20 @@ func Chat(c echo.Context, db *sql.DB) error {
 		return nil
 	}
 
-	messageHistory, err := messages.GetChatHistory(db, roomId, 20)
+	messageHistory, err := messages.GetChatHistory(db, roomId, 0)
 	if err != nil {
 		log.Printf("Error retrieving message history: %v", err)
 		middlewares.SendWebSocketError(ws, "Error retrieving message history")
 		return nil
 	}
 
-	response := map[string]interface{}{
-		"room_id":  roomId,
-		"messages": messageHistory,
-	}
-
-	if err := ws.WriteJSON(response); err != nil {
+	if err := ws.WriteJSON(messageHistory); err != nil {
 		log.Printf("Failed to send response via WebSocket: %v", err)
 		middlewares.SendWebSocketError(ws, "Failed to send response")
 		return nil
 	}
 
-	userConnections[senderId] = ws
+	userConnections[senderId] = append(userConnections[senderId], ws)
 
 	for {
 		var incomingMsg IncomingMessage
@@ -98,17 +93,17 @@ func Chat(c echo.Context, db *sql.DB) error {
 			continue
 		}
 
-		updatedMessages, err := messages.GetChatHistory(db, roomId, 20)
+		updatedMessages, err := messages.GetChatHistory(db, roomId, 0)
 		if err != nil {
 			log.Printf("Error retrieving updated message history: %v", err)
 			middlewares.SendWebSocketError(ws, "Error retrieving updated message history")
 			continue
 		}
 
-		if senderWs, ok := userConnections[senderId]; ok {
+		for _, senderWs := range userConnections[senderId] {
 			senderWs.WriteJSON(updatedMessages)
 		}
-		if receiverWs, ok := userConnections[receiverId]; ok {
+		for _, receiverWs := range userConnections[receiverId] {
 			receiverWs.WriteJSON(updatedMessages)
 		}
 	}

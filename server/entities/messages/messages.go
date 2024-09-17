@@ -23,7 +23,8 @@ func Save(db *sql.DB, roomId, senderId int, message string) error {
 }
 
 func GetChatHistory(db *sql.DB, roomId, limit int) ([]Messages, error) {
-	rows, err := db.Query(`
+	// Base query
+	query := `
 		SELECT 
 			messages.id, 
 			messages.room_id, 
@@ -33,10 +34,21 @@ func GetChatHistory(db *sql.DB, roomId, limit int) ([]Messages, error) {
 			messages.created_at 
 		FROM messages
 		INNER JOIN users ON messages.user_id = users.id
-		WHERE messages.room_id = ? 
-		ORDER BY messages.created_at DESC
-		LIMIT ?;`,
-		roomId, limit)
+		WHERE messages.room_id = ?
+		ORDER BY messages.created_at DESC`
+
+	if limit > 0 {
+		query += " LIMIT ?;"
+	}
+
+	var rows *sql.Rows
+	var err error
+	if limit > 0 {
+		rows, err = db.Query(query, roomId, limit)
+	} else {
+		rows, err = db.Query(query, roomId)
+	}
+
 	if err != nil {
 		return nil, err
 	}

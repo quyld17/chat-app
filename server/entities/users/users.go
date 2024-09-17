@@ -13,7 +13,7 @@ type Users struct {
 	Id        int       `json:"id"`
 	Username  string    `json:"username"`
 	Password  string    `json:"password"`
-	CreatedAt time.Time `json:"cratedAt"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Status struct {
