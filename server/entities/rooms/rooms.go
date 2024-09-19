@@ -28,8 +28,10 @@ func GetId(db *sql.DB, receiverId, senderId int) (int, error) {
 		GROUP BY room_id
 		HAVING COUNT(DISTINCT user_id) = 2;`,
 		receiverId, senderId).Scan(&roomId)
-
-	if queryErr != sql.ErrNoRows {
+	if queryErr != nil && queryErr != sql.ErrNoRows {
+		return 0, queryErr
+	}
+	if queryErr == nil {
 		return roomId, nil
 	}
 
