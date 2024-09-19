@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Generate(username string) (string, error) {
+func Generate(username string, userId int) (string, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
 		return "", err
@@ -18,6 +18,7 @@ func Generate(username string) (string, error) {
 
 	claims := token.Claims.(jwt.MapClaims)
 	claims["username"] = username
+	claims["user_id"] = userId
 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
 	secret := []byte(os.Getenv("JWT_SECRET_KEY"))

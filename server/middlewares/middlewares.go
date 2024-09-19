@@ -38,7 +38,21 @@ func JWTAuthorize(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid token claims: Missing username")
 		}
 
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid token claims: Missing user_id")
+		}
+		userIdFloat, ok := claims["user_id"].(float64)
+		if !ok {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid token claims: Invalid user_id format")
+		}
+		userId := int(userIdFloat)
+		if !ok || userId == 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid token claims: Missing user_id")
+		}
+
 		c.Set("username", username)
+		c.Set("user_id", userId)
 
 		return next(c)
 	}

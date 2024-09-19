@@ -20,7 +20,12 @@ func SignIn(c echo.Context, db *sql.DB) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
 
-	token, err := jwtService.Generate(account.Username)
+	userId, err := users.GetIdByUsername(c, db, account.Username)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
+	}
+
+	token, err := jwtService.Generate(account.Username, userId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}

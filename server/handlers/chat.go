@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/quyld17/chat-app/entities/messages"
 	"github.com/quyld17/chat-app/entities/rooms"
-	"github.com/quyld17/chat-app/entities/users"
 	"github.com/quyld17/chat-app/middlewares"
 )
 
@@ -42,12 +41,7 @@ func Chat(c echo.Context, db *sql.DB) error {
 		return nil
 	}
 
-	senderId, err := users.GetId(c, db)
-	if err != nil {
-		log.Printf("Failed to retrieve sender ID: %v", err)
-		middlewares.SendWebSocketError(ws, "Failed to retrieve user ID")
-		return nil
-	}
+	senderId := c.Get("user_id").(int)
 
 	roomId, err := rooms.GetId(db, receiverId, senderId)
 	if err != nil {

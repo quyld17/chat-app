@@ -51,12 +51,11 @@ func Create(newUser Users, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
-func GetId(c echo.Context, db *sql.DB) (int, error) {
-	username := c.Get("username").(string)
+func GetIdByUsername(c echo.Context, db *sql.DB, username string) (int, error) {
 	row := db.QueryRow(`
 		SELECT id
 		FROM users

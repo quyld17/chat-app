@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/quyld17/chat-app/entities/status"
-	"github.com/quyld17/chat-app/entities/users"
 	"github.com/quyld17/chat-app/middlewares"
 )
 
@@ -18,12 +17,7 @@ func UpdateStatus(c echo.Context, db *sql.DB) error {
 	}
 	defer ws.Close()
 
-	userId, err := users.GetId(c, db)
-	if err != nil {
-		log.Printf("Failed to retrieve user id: %v", err)
-		middlewares.SendWebSocketError(ws, "Failed to update user status")
-		return nil
-	}
+	userId := c.Get("user_id").(int)
 
 	err = status.Update(db, userId)
 	if err != nil {
