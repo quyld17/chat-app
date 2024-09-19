@@ -23,7 +23,6 @@ func Save(db *sql.DB, roomId, senderId int, message string) error {
 }
 
 func GetChatHistory(db *sql.DB, roomId, limit int) ([]Messages, error) {
-	// Base query
 	query := `
 		SELECT 
 			messages.id, 
