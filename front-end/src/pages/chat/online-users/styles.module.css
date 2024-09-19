@@ -14,6 +14,10 @@
 
 .user {
   border-bottom: 1px solid #000000;
-  height: 50px;
+  padding: 20px 0 20px 0;
   cursor: pointer;
+}
+
+.user:hover {
+  font-weight: bold;
 }

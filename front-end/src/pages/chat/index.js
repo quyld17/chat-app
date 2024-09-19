@@ -17,6 +17,8 @@ export default function Chat() {
   const [messageInput, setMessageInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [receiverId, setReceiverId] = useState(0);
+  const [receiverUsername, setReceiverUsername] = useState("");
+  const [userId, setUserId] = useState(0);
   const router = useRouter();
   const socketRef = useRef(null);
 
@@ -30,6 +32,10 @@ export default function Chat() {
     }
     setToken(storedToken);
     const decodedToken = DecodeToken(storedToken);
+    if (decodedToken && decodedToken.user_id) {
+      setUserId(decodedToken.user_id);
+    }
+
     CheckTokenExpireTime(handleSignOut, decodedToken);
   }, []);
 
@@ -47,8 +53,12 @@ export default function Chat() {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      // setMessages((prevMessages) => [...prevMessages, ...data]);
-      setMessages(data);
+
+      if (Array.isArray(data)) {
+        setMessages(data);
+      } else {
+        setMessages((prevMessages) => [...prevMessages, data]);
+      }
     };
 
     ws.onerror = (err) => {
@@ -85,7 +95,7 @@ export default function Chat() {
     if (receiverId == 0) {
       message.error("Please select a user.");
     } else if (!messageInput.trim()) {
-      message.error("Please enter a message.");
+      return;
     } else {
       const trimmedMessage = messageInput.trim();
       if (
@@ -119,12 +129,24 @@ export default function Chat() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <OnlineStatus token={token} />
+      {/* <div className={styles.onlineUsersAndSignOutContainer}> */}
+      {/* <button onClick={handleSignOut} className={styles.signOutButton}>
+          Sign out
+        </button> */}
       <OnlineUsers
+        className={styles.onlineUsers}
         setMessageInput={setMessageInput}
         setReceiverId={setReceiverId}
+        setReceiverUsername={setReceiverUsername}
+        userId={userId}
       />
+      {/* </div> */}
 
       <div className={styles.chatContainer}>
+        {receiverUsername && (
+          <div className={styles.receiverUsername}>{receiverUsername}</div>
+        )}
+
         <div className={styles.messages}>
           {messages &&
             [...messages].reverse().map((msg, index) => (

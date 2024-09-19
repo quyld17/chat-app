@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import handleGetOnlineListAPI from "../../../apis/handlers/online-list";
 import styles from "./styles.module.css";
 
-export const OnlineUsers = ({ setMessageInput, setReceiverId }) => {
+export const OnlineUsers = ({
+  setMessageInput,
+  setReceiverId,
+  setReceiverUsername,
+  userId,
+}) => {
   const [list, setList] = useState([]);
 
   useEffect(() => {
@@ -21,24 +26,27 @@ export const OnlineUsers = ({ setMessageInput, setReceiverId }) => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const handleClick = (userId) => {
+  const handleClick = (userId, username) => {
     setMessageInput("");
     setReceiverId(userId);
+    setReceiverUsername(username);
   };
 
   return (
     <div className={styles.container}>
       <h2 className={styles.headline}>Online Users</h2>
       <ul style={{ listStyleType: "none" }} className={styles.usersList}>
-        {list.map((user, index) => (
-          <li
-            onClick={() => handleClick(user.id)}
-            className={styles.user}
-            key={index}
-          >
-            {user.username}
-          </li>
-        ))}
+        {list
+          .filter((user) => user.id !== userId)
+          .map((user, index) => (
+            <li
+              onClick={() => handleClick(user.id, user.username)}
+              className={styles.user}
+              key={index}
+            >
+              {user.username}
+            </li>
+          ))}
       </ul>
     </div>
   );

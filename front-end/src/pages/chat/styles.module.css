@@ -5,11 +5,36 @@
   height: 100vh;
 }
 
+/* .onlineUsersAndSignOutContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.onlineUsers {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.signOutButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #0070f3;
+  color: white;
+  cursor: pointer;
+} */
+
 .chatContainer {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   border-left: 1px solid #ccc;
+}
+
+.receiverUsername {
+  padding: 20px;
+  border-bottom: 1px solid #ddd;
 }
 
 .messages {
@@ -57,6 +82,7 @@
   cursor: pointer;
 }
 
-.button:hover {
+.button,
+.signOutButton:hover {
   background-color: #005bb5;
 }
