@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/gorilla/websocket"
@@ -14,10 +15,37 @@ import (
 )
 
 type IncomingMessage struct {
-	Message string `json:"message"`
+	ReceiverId int    `json:"receiver_id"`
+	Message    string `json:"message"`
 }
 
-var userConnections = make(map[int][]*websocket.Conn)
+func GetChatHistory(c echo.Context, db *sql.DB) error {
+	receiverIdStr := c.QueryParam("receiver_id")
+	if receiverIdStr == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "Receiver ID is missing")
+	}
+
+	receiverId, err := strconv.Atoi(receiverIdStr)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Receiver ID")
+	}
+
+	senderId := c.Get("user_id").(int)
+
+	roomId, err := rooms.GetId(db, receiverId, senderId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error retrieving or creating room")
+	}
+
+	chatHistory, err := messages.GetChatHistory(db, roomId, 0)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error retrieving chat history")
+	}
+
+	return c.JSON(http.StatusOK, chatHistory)
+}
+
+var userConnections = make(map[int]*websocket.Conn)
 
 func Chat(c echo.Context, db *sql.DB) error {
 	ws, err := middlewares.Upgrader.Upgrade(c.Response(), c.Request(), nil)
@@ -27,43 +55,11 @@ func Chat(c echo.Context, db *sql.DB) error {
 	}
 	defer ws.Close()
 
-	receiverIdStr := c.QueryParam("receiver_id")
-	if receiverIdStr == "" {
-		log.Printf("Receiver ID is missing")
-		middlewares.SendWebSocketError(ws, "Receiver ID is required")
-		return nil
-	}
-
-	receiverId, err := strconv.Atoi(receiverIdStr)
-	if err != nil {
-		log.Printf("Invalid Receiver ID: %v", err)
-		middlewares.SendWebSocketError(ws, "Invalid Receiver ID")
-		return nil
-	}
-
 	senderId := c.Get("user_id").(int)
 
-	roomId, err := rooms.GetId(db, receiverId, senderId)
-	if err != nil {
-		log.Printf("Error retrieving or creating room: %v", err)
-		middlewares.SendWebSocketError(ws, "Error retrieving or creating room")
-		return nil
-	}
+	userConnections[senderId] = ws
 
-	messageHistory, err := messages.GetChatHistory(db, roomId, 0)
-	if err != nil {
-		log.Printf("Error retrieving message history: %v", err)
-		middlewares.SendWebSocketError(ws, "Error retrieving message history")
-		return nil
-	}
-
-	if err := ws.WriteJSON(messageHistory); err != nil {
-		log.Printf("Failed to send response via WebSocket: %v", err)
-		middlewares.SendWebSocketError(ws, "Failed to send response")
-		return nil
-	}
-
-	userConnections[senderId] = append(userConnections[senderId], ws)
+	defer delete(userConnections, senderId)
 
 	for {
 		var incomingMsg IncomingMessage
@@ -79,6 +75,14 @@ func Chat(c echo.Context, db *sql.DB) error {
 			middlewares.SendWebSocketError(ws, "Invalid message format")
 			continue
 		}
+		receiverId := incomingMsg.ReceiverId
+
+		roomId, err := rooms.GetId(db, receiverId, senderId)
+		if err != nil {
+			log.Printf("Error retrieving or creating room: %v", err)
+			middlewares.SendWebSocketError(ws, "Error retrieving or creating room")
+			return nil
+		}
 
 		err = messages.Save(db, roomId, senderId, incomingMsg.Message)
 		if err != nil {
@@ -87,18 +91,15 @@ func Chat(c echo.Context, db *sql.DB) error {
 			continue
 		}
 
-		updatedMessages, err := messages.GetChatHistory(db, roomId, 0)
-		if err != nil {
-			log.Printf("Error retrieving updated message history: %v", err)
-			middlewares.SendWebSocketError(ws, "Error retrieving updated message history")
-			continue
+		response := map[string]interface{}{
+			"sender_id": senderId,
+			"message":   incomingMsg.Message,
 		}
 
-		for _, senderWs := range userConnections[senderId] {
-			senderWs.WriteJSON(updatedMessages)
-		}
-		for _, receiverWs := range userConnections[receiverId] {
-			receiverWs.WriteJSON(updatedMessages)
+		if receiverWs, ok := userConnections[receiverId]; ok {
+			if err := receiverWs.WriteJSON(response); err != nil {
+				log.Printf("Error sending updated messages to receiver: %v", err)
+			}
 		}
 	}
 

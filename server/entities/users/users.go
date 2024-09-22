@@ -69,12 +69,14 @@ func GetIdByUsername(c echo.Context, db *sql.DB, username string) (int, error) {
 	return userID, nil
 }
 
-func GetOnlineList(c echo.Context, db *sql.DB) ([]Users, error) {
+func GetOnlineList(c echo.Context, db *sql.DB, userId int) ([]Users, error) {
 	rows, err := db.Query(`
 		SELECT 	status.user_id, 
 				users.username
 		FROM status
-		JOIN users ON status.user_id = users.id;`)
+		JOIN users ON status.user_id = users.id
+		WHERE status.user_id != ?;`, 
+		userId)
 	if err != nil {
 		return nil, err
 	}

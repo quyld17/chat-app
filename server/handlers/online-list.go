@@ -9,7 +9,8 @@ import (
 )
 
 func GetOnlineList(c echo.Context, db *sql.DB) error {
-	list, err := users.GetOnlineList(c, db)
+	userId := c.Get("user_id").(int)
+	list, err := users.GetOnlineList(c, db, userId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to retrieve online users")
 	}
