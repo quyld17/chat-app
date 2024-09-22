@@ -14,7 +14,7 @@
 .onlineUsers {
   flex-grow: 1;
   overflow-y: auto;
-}
+} */
 
 .signOutButton {
   padding: 10px 20px;
@@ -23,7 +23,7 @@
   background-color: #0070f3;
   color: white;
   cursor: pointer;
-} */
+}
 
 .chatContainer {
   display: flex;

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import handleGetOnlineListAPI from "../../../apis/handlers/online-list";
 import styles from "./styles.module.css";
+import { handleGetChatHistory } from "@/apis/handlers/chat";
 
 export const OnlineUsers = ({
   setMessageInput,
   setReceiverId,
   setReceiverUsername,
-  userId,
+  setMessages,
 }) => {
   const [list, setList] = useState([]);
 
@@ -27,6 +28,10 @@ export const OnlineUsers = ({
   }, []);
 
   const handleClick = (userId, username) => {
+    handleGetChatHistory(userId).then((data) => {
+      setMessages(data);
+    });
+
     setMessageInput("");
     setReceiverId(userId);
     setReceiverUsername(username);
@@ -36,17 +41,15 @@ export const OnlineUsers = ({
     <div className={styles.container}>
       <h2 className={styles.headline}>Online Users</h2>
       <ul style={{ listStyleType: "none" }} className={styles.usersList}>
-        {list
-          .filter((user) => user.id !== userId)
-          .map((user, index) => (
-            <li
-              onClick={() => handleClick(user.id, user.username)}
-              className={styles.user}
-              key={index}
-            >
-              {user.username}
-            </li>
-          ))}
+        {list.map((user, index) => (
+          <li
+            onClick={() => handleClick(user.id, user.username)}
+            className={styles.user}
+            key={index}
+          >
+            {user.username}
+          </li>
+        ))}
       </ul>
     </div>
   );

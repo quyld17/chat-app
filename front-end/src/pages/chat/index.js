@@ -18,7 +18,7 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [receiverId, setReceiverId] = useState(0);
   const [receiverUsername, setReceiverUsername] = useState("");
-  const [userId, setUserId] = useState(0);
+  const [username, setUsername] = useState("");
   const router = useRouter();
   const socketRef = useRef(null);
 
@@ -33,18 +33,15 @@ export default function Chat() {
     setToken(storedToken);
     const decodedToken = DecodeToken(storedToken);
     if (decodedToken && decodedToken.user_id) {
-      setUserId(decodedToken.user_id);
+      setUsername(decodedToken.username);
     }
-
     CheckTokenExpireTime(handleSignOut, decodedToken);
   }, []);
 
   useEffect(() => {
-    if (receiverId === 0) return;
+    if (!token) return;
 
-    const ws = new WebSocket(
-      `ws://localhost:8080/ws/chat?token=${token}&receiver_id=${receiverId}`
-    );
+    const ws = new WebSocket(`ws://localhost:8080/ws/chat?token=${token}`);
     socketRef.current = ws;
 
     ws.onopen = () => {
@@ -53,11 +50,11 @@ export default function Chat() {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-
-      if (Array.isArray(data)) {
-        setMessages(data);
-      } else {
-        setMessages((prevMessages) => [...prevMessages, data]);
+      if (receiverId == data.sender_id) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { content: data.message, username: receiverUsername },
+        ]);
       }
     };
 
@@ -75,7 +72,7 @@ export default function Chat() {
         ws.close();
       }
     };
-  }, [receiverId, token]);
+  }, [token, receiverId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -92,25 +89,24 @@ export default function Chat() {
   };
 
   const handleSendMessage = () => {
-    if (receiverId == 0) {
-      message.error("Please select a user.");
-    } else if (!messageInput.trim()) {
+    if (!messageInput.trim()) {
       return;
-    } else {
-      const trimmedMessage = messageInput.trim();
-      if (
-        socketRef.current &&
-        socketRef.current.readyState === WebSocket.OPEN
-      ) {
-        const messageData = {
-          message: trimmedMessage,
-        };
-        socketRef.current.send(JSON.stringify(messageData));
-        setMessageInput("");
-      } else {
-        message.error("WebSocket connection is not open.");
-      }
     }
+    const trimmedMessage = messageInput.trim();
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      const messageData = {
+        receiver_id: receiverId,
+        message: trimmedMessage,
+      };
+      socketRef.current.send(JSON.stringify(messageData));
+      setMessageInput("");
+    } else {
+      message.error("WebSocket connection is not open.");
+    }
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { content: trimmedMessage, username: username },
+    ]);
   };
 
   const handleSignOut = () => {
@@ -129,18 +125,18 @@ export default function Chat() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <OnlineStatus token={token} />
-      {/* <div className={styles.onlineUsersAndSignOutContainer}> */}
-      {/* <button onClick={handleSignOut} className={styles.signOutButton}>
+      <div className={styles.onlineUsersAndSignOutContainer}>
+        <OnlineUsers
+          className={styles.onlineUsers}
+          setMessageInput={setMessageInput}
+          setReceiverId={setReceiverId}
+          setReceiverUsername={setReceiverUsername}
+          setMessages={setMessages}
+        />
+        <button onClick={handleSignOut} className={styles.signOutButton}>
           Sign out
-        </button> */}
-      <OnlineUsers
-        className={styles.onlineUsers}
-        setMessageInput={setMessageInput}
-        setReceiverId={setReceiverId}
-        setReceiverUsername={setReceiverUsername}
-        userId={userId}
-      />
-      {/* </div> */}
+        </button>
+      </div>
 
       <div className={styles.chatContainer}>
         {receiverUsername && (
@@ -149,7 +145,7 @@ export default function Chat() {
 
         <div className={styles.messages}>
           {messages &&
-            [...messages].reverse().map((msg, index) => (
+            messages.map((msg, index) => (
               <div className={styles.messageContent} key={index}>
                 <span className={styles.username}>{msg.username}:</span>
                 <span className={styles.messageText}>{msg.content}</span>
@@ -157,19 +153,21 @@ export default function Chat() {
             ))}
           <div ref={messagesEndRef} />
         </div>
-        <div className={styles.inputContainer}>
-          <input
-            type="text"
-            value={messageInput}
-            onKeyUp={handleKeyPress}
-            onChange={(e) => setMessageInput(e.target.value)}
-            placeholder="Enter your message"
-            className={styles.input}
-          />
-          <button onClick={handleSendMessage} className={styles.button}>
-            Send
-          </button>
-        </div>
+        {receiverId != 0 && (
+          <div className={styles.inputContainer}>
+            <input
+              type="text"
+              value={messageInput}
+              onKeyUp={handleKeyPress}
+              onChange={(e) => setMessageInput(e.target.value)}
+              placeholder="Enter your message"
+              className={styles.input}
+            />
+            <button onClick={handleSendMessage} className={styles.button}>
+              Send
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

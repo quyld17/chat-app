@@ -1,4 +1,5 @@
 import { message } from "antd";
+import getMethodAPI from "../methods/get-method-api";
 
 export function handleChatAPI(token, receiverId, messageInput, onMessage) {
   const ws = new WebSocket(
@@ -35,4 +36,20 @@ export function handleChatAPI(token, receiverId, messageInput, onMessage) {
   };
 
   return ws;
+}
+
+export function handleGetChatHistory(receiver_id) {
+  return new Promise((resolve, reject) => {
+    const endpoint = `/chat-history?receiver_id=${receiver_id}`;
+    getMethodAPI(
+      endpoint,
+      (data) => {
+        resolve(data);
+      },
+      (error) => {
+        reject(error);
+        // message.error(error);
+      }
+    );
+  });
 }
