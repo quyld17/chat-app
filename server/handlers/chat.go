@@ -33,13 +33,20 @@ func GetChatHistory(c echo.Context, db *sql.DB) error {
 	senderId := c.Get("user_id").(int)
 
 	roomId, err := rooms.GetId(db, receiverId, senderId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Error retrieving or creating room")
+	if err == sql.ErrNoRows {
+		roomId, err = rooms.Create(db, receiverId, senderId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to create room")
+		}
 	}
 
 	chatHistory, err := messages.GetChatHistory(db, roomId, 0)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Error retrieving chat history")
+	}
+
+	for i, j := 0, len(chatHistory) - 1; i < j; i, j = i + 1, j - 1 {
+		chatHistory[i], chatHistory[j] = chatHistory[j], chatHistory[i]
 	}
 
 	return c.JSON(http.StatusOK, chatHistory)
@@ -80,7 +87,7 @@ func Chat(c echo.Context, db *sql.DB) error {
 		roomId, err := rooms.GetId(db, receiverId, senderId)
 		if err != nil {
 			log.Printf("Error retrieving or creating room: %v", err)
-			middlewares.SendWebSocketError(ws, "Error retrieving or creating room")
+			middlewares.SendWebSocketError(ws, "Error retrieving room")
 			return nil
 		}
 

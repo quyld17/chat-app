@@ -20,12 +20,12 @@ func RegisterAPIHandlers(router *echo.Echo, db *sql.DB) {
 		return handlers.GetOnlineList(c, db)
 	}))
 
-	router.GET("/chat-history", middlewares.JWTAuthorize(func(c echo.Context) error {
-		return handlers.GetChatHistory(c, db)
-	}))
-
 	router.GET("/ws/status", middlewares.JWTAuthorize(func(c echo.Context) error {
 		return handlers.UpdateStatus(c, db)
+	}))
+
+	router.GET("/chat-history", middlewares.JWTAuthorize(func(c echo.Context) error {
+		return handlers.GetChatHistory(c, db)
 	}))
 
 	router.GET("/ws/chat", middlewares.JWTAuthorize(func(c echo.Context) error {

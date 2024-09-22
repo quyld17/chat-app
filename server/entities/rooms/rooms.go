@@ -28,16 +28,19 @@ func GetId(db *sql.DB, receiverId, senderId int) (int, error) {
 		GROUP BY room_id
 		HAVING COUNT(DISTINCT user_id) = 2;`,
 		receiverId, senderId).Scan(&roomId)
-	if queryErr != nil && queryErr != sql.ErrNoRows {
+
+	if queryErr != nil {
 		return 0, queryErr
 	}
-	if queryErr == nil {
-		return roomId, nil
-	}
 
+	return roomId, nil
+}
+
+func Create(db *sql.DB, receiverId, senderId int) (int, error) {
+	var roomId int
 	tx, err := db.Begin()
 	if err != nil {
-		return 0, fmt.Errorf("failed to begin transaction: %v", err)
+		return 0, err
 	}
 	var commitErr error
 
