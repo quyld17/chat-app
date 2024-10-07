@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Head from "next/head";
+import Script from "next/script";
 import { useRouter } from "next/router";
 
 import styles from "./styles.module.css";
 import handleSignInAPI from "../../apis/handlers/sign-in";
+import handleValidateGoogleToken from "../../apis/handlers/google-sign-in";
 
 import { Layout, theme, Form, Input, Button, message } from "antd";
 import { GetToken } from "../../components/jwt/index";
+
+require("dotenv").config();
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 const { Content } = Layout;
 
@@ -30,20 +36,35 @@ const credentialsValidate = (username, password) => {
 export default function SignInPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const token = GetToken();
-
     if (token) {
       router.push("/chat");
       return;
     }
+
+    setIsClient(true);
   }, []);
 
   const {
     token: { colorBgContainer },
   } = theme.useToken();
+
+  // const handleGoogleSignIn = (googleUser) => {
+  //   const id_token = googleUser.getAuthResponse().id_token;
+  //   handleValidateGoogleToken(id_token)
+  //     .then((data) => {
+  //       localStorage.setItem("token", data.token);
+  //       router.push("/chat");
+  //     })
+  //     .catch((error) => {
+  //       message.error("Google Sign-In failed. Please try again.");
+  //       console.error(error);
+  //     });
+  // };
 
   const handleSignIn = (e) => {
     e.preventDefault();
@@ -54,7 +75,8 @@ export default function SignInPage() {
           router.push("/chat");
         })
         .catch((error) => {
-          console.log("Error getting delivery address: ", error);
+          console.log("Error signing in: ", error);
+          message.error("Sign-In failed. Please try again.");
         });
     }
   };
@@ -63,6 +85,7 @@ export default function SignInPage() {
     <Layout>
       <Head>
         <title>Sign In</title>
+        <meta charSet="UTF-8"></meta>
       </Head>
 
       <Layout
@@ -74,6 +97,16 @@ export default function SignInPage() {
         }}
       >
         <Content className={styles.content}>
+          <Script
+            src="https://accounts.google.com/gsi/client"
+            async
+            defer
+          ></Script>
+          <div
+            id="g_id_onload"
+            data-client_id={GOOGLE_CLIENT_ID}
+            data-callback="handleCredentialResponse"
+          ></div>
           <Form
             labelCol={{ span: 6 }}
             className={styles.signInForm}
@@ -103,6 +136,8 @@ export default function SignInPage() {
                 Sign in
               </Button>
             </Form.Item>
+
+            {isClient && <div class="g_id_signin" data-type="standard"></div>}
 
             <p className={styles.createAccount}>
               Don&#39;t have an account?{" "}

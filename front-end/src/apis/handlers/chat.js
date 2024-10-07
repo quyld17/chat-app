@@ -38,9 +38,9 @@ export function handleChatAPI(token, receiverId, messageInput, onMessage) {
   return ws;
 }
 
-export function handleGetChatHistory(receiver_id) {
+export function handleGetChatHistory(receiver_id, offset) {
   return new Promise((resolve, reject) => {
-    const endpoint = `/chat-history?receiver_id=${receiver_id}`;
+    const endpoint = `/chat-history?receiver_id=${receiver_id}&offset=${offset}`;
     getMethodAPI(
       endpoint,
       (data) => {

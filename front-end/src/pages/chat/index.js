@@ -12,6 +12,8 @@ import {
   GetToken,
 } from "../../components/jwt/index";
 
+import { handleGetChatHistory } from "../../apis/handlers/chat";
+
 export default function Chat() {
   const [token, setToken] = useState("");
   const [messageInput, setMessageInput] = useState("");
@@ -19,9 +21,12 @@ export default function Chat() {
   const [receiverId, setReceiverId] = useState(0);
   const [receiverUsername, setReceiverUsername] = useState("");
   const [username, setUsername] = useState("");
+  const [offset, setOffset] = useState(20);
+  const [hasMore, setHasMore] = useState(true);
+  const [hasLoadedMessages, setHasLoadedMessages] = useState(false);
   const router = useRouter();
   const socketRef = useRef(null);
-
+  const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -55,6 +60,7 @@ export default function Chat() {
           ...prevMessages,
           { content: data.message, username: receiverUsername },
         ]);
+        scrollToBottomAfterNewMessage();
       }
     };
 
@@ -79,19 +85,51 @@ export default function Chat() {
   }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!hasLoadedMessages) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      setHasLoadedMessages(true);
+    }
   };
 
-  const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
-      handleSendMessage();
+  const handleScroll = () => {
+    const element = messagesContainerRef.current;
+    if (element.scrollTop === 0 && hasMore) {
+      loadMessages(offset);
     }
+  };
+
+  const loadMessages = async (newOffset) => {
+    try {
+      const olderMessages = await handleGetChatHistory(receiverId, newOffset);
+      if (olderMessages.length === 0) {
+        setHasMore(false);
+      } else {
+        const previousScrollHeight = messagesContainerRef.current.scrollHeight;
+
+        setMessages((prevMessages) => [...olderMessages, ...prevMessages]);
+        setOffset(newOffset + olderMessages.length);
+
+        setTimeout(() => {
+          const newScrollHeight = messagesContainerRef.current.scrollHeight;
+          const scrollDiff = newScrollHeight - previousScrollHeight;
+
+          messagesContainerRef.current.scrollTop = scrollDiff;
+        }, 0);
+      }
+    } catch (error) {
+      console.error("Error loading chat history:", error);
+    }
+  };
+
+  const scrollToBottomAfterNewMessage = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 0);
   };
 
   const handleSendMessage = () => {
-    if (!messageInput.trim()) {
-      return;
-    }
+    if (!messageInput.trim()) return;
+
     const trimmedMessage = messageInput.trim();
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       const messageData = {
@@ -107,6 +145,8 @@ export default function Chat() {
       ...prevMessages,
       { content: trimmedMessage, username: username },
     ]);
+
+    scrollToBottomAfterNewMessage();
   };
 
   const handleSignOut = () => {
@@ -132,6 +172,7 @@ export default function Chat() {
           setReceiverId={setReceiverId}
           setReceiverUsername={setReceiverUsername}
           setMessages={setMessages}
+          setHasLoadedMessages={setHasLoadedMessages}
         />
         <button onClick={handleSignOut} className={styles.signOutButton}>
           Sign out
@@ -143,22 +184,33 @@ export default function Chat() {
           <div className={styles.receiverUsername}>{receiverUsername}</div>
         )}
 
-        <div className={styles.messages}>
+        <div
+          className={styles.messages}
+          onScroll={handleScroll}
+          ref={messagesContainerRef}
+        >
           {messages &&
             messages.map((msg, index) => (
-              <div className={styles.messageContent} key={index}>
+              <div
+                className={`${styles.messageContent} ${
+                  msg.username === username
+                    ? styles.myMessage
+                    : styles.otherMessage
+                }`}
+                key={index}
+              >
                 <span className={styles.username}>{msg.username}:</span>
                 <span className={styles.messageText}>{msg.content}</span>
               </div>
             ))}
           <div ref={messagesEndRef} />
         </div>
-        {receiverId != 0 && (
+        {receiverId !== 0 && (
           <div className={styles.inputContainer}>
             <input
               type="text"
               value={messageInput}
-              onKeyUp={handleKeyPress}
+              onKeyUp={(e) => e.key === "Enter" && handleSendMessage()}
               onChange={(e) => setMessageInput(e.target.value)}
               placeholder="Enter your message"
               className={styles.input}

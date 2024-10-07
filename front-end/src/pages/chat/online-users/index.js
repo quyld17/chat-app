@@ -8,6 +8,7 @@ export const OnlineUsers = ({
   setReceiverId,
   setReceiverUsername,
   setMessages,
+  setHasLoadedMessages,
 }) => {
   const [list, setList] = useState([]);
 
@@ -28,8 +29,9 @@ export const OnlineUsers = ({
   }, []);
 
   const handleClick = (userId, username) => {
-    handleGetChatHistory(userId).then((data) => {
+    handleGetChatHistory(userId, 0).then((data) => {
       setMessages(data);
+      setHasLoadedMessages(false);
     });
 
     setMessageInput("");
