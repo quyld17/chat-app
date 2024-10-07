@@ -12,7 +12,7 @@ import {
   GetToken,
 } from "../../components/jwt/index";
 
-import { handleGetChatHistory } from "../../apis/handlers/chat";
+import { handleGetChatHistoryAPI } from "../../apis/handlers/chat";
 
 export default function Chat() {
   const [token, setToken] = useState("");
@@ -100,7 +100,10 @@ export default function Chat() {
 
   const loadMessages = async (newOffset) => {
     try {
-      const olderMessages = await handleGetChatHistory(receiverId, newOffset);
+      const olderMessages = await handleGetChatHistoryAPI(
+        receiverId,
+        newOffset
+      );
       if (olderMessages.length === 0) {
         setHasMore(false);
       } else {

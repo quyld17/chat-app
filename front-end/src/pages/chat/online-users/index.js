@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import handleGetOnlineListAPI from "../../../apis/handlers/online-list";
 import styles from "./styles.module.css";
-import { handleGetChatHistory } from "@/apis/handlers/chat";
+import { handleGetChatHistoryAPI } from "@/apis/handlers/chat";
 
 export const OnlineUsers = ({
   setMessageInput,
@@ -29,7 +29,7 @@ export const OnlineUsers = ({
   }, []);
 
   const handleClick = (userId, username) => {
-    handleGetChatHistory(userId, 0).then((data) => {
+    handleGetChatHistoryAPI(userId, 0).then((data) => {
       setMessages(data);
       setHasLoadedMessages(false);
     });

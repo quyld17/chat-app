@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 
 import styles from "./styles.module.css";
 import handleSignInAPI from "../../apis/handlers/sign-in";
-import handleValidateGoogleToken from "../../apis/handlers/google-sign-in";
+import handleGoogleSignIn from "../../apis/handlers/google-sign-in";
 
 import { Layout, theme, Form, Input, Button, message } from "antd";
 import { GetToken } from "../../components/jwt/index";
@@ -36,7 +36,6 @@ const credentialsValidate = (username, password) => {
 export default function SignInPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -45,26 +44,11 @@ export default function SignInPage() {
       router.push("/chat");
       return;
     }
-
-    setIsClient(true);
   }, []);
 
   const {
     token: { colorBgContainer },
   } = theme.useToken();
-
-  // const handleGoogleSignIn = (googleUser) => {
-  //   const id_token = googleUser.getAuthResponse().id_token;
-  //   handleValidateGoogleToken(id_token)
-  //     .then((data) => {
-  //       localStorage.setItem("token", data.token);
-  //       router.push("/chat");
-  //     })
-  //     .catch((error) => {
-  //       message.error("Google Sign-In failed. Please try again.");
-  //       console.error(error);
-  //     });
-  // };
 
   const handleSignIn = (e) => {
     e.preventDefault();
@@ -79,6 +63,19 @@ export default function SignInPage() {
           message.error("Sign-In failed. Please try again.");
         });
     }
+  };
+
+  const handleGoogleCallback = (response) => {
+    const token = response.credential;
+    handleGoogleSignIn(token)
+      .then(() => {
+        localStorage.setItem("token", token);
+        router.push("/chat");
+      })
+      .catch((error) => {
+        console.error("Google token validation failed:", error);
+        message.error("Google Sign-In failed. Please try again.");
+      });
   };
 
   return (
@@ -97,16 +94,6 @@ export default function SignInPage() {
         }}
       >
         <Content className={styles.content}>
-          <Script
-            src="https://accounts.google.com/gsi/client"
-            async
-            defer
-          ></Script>
-          <div
-            id="g_id_onload"
-            data-client_id={GOOGLE_CLIENT_ID}
-            data-callback="handleCredentialResponse"
-          ></div>
           <Form
             labelCol={{ span: 6 }}
             className={styles.signInForm}
@@ -137,7 +124,49 @@ export default function SignInPage() {
               </Button>
             </Form.Item>
 
-            {isClient && <div class="g_id_signin" data-type="standard"></div>}
+            <Script
+              src="https://accounts.google.com/gsi/client"
+              async
+              defer
+              onLoad={() => {
+                window.google.accounts.id.initialize({
+                  client_id: GOOGLE_CLIENT_ID,
+                  callback: handleGoogleCallback,
+                });
+                window.google.accounts.id.renderButton(
+                  document.getElementById("google-signin-button"),
+                  { size: "large" }
+                );
+              }}
+            ></Script>
+            <div id="google-signin-button"></div>
+
+            {/* <Script
+              src="https://accounts.google.com/gsi/client"
+              async
+              defer
+              onLoad={() => {
+                window.google.accounts.id.initialize({
+                  client_id: GOOGLE_CLIENT_ID,
+                  callback: handleGoogleCallback,
+                });
+              }}
+            ></Script>
+            <div
+              id="g_id_onload"
+              data-client_id={GOOGLE_CLIENT_ID}
+              data-login_uri="https://localhost:3000/chat"
+              data-auto_prompt="false"
+            ></div>
+            <div
+              className="g_id_signin"
+              data-type="standard"
+              data-size="large"
+              data-theme="outline"
+              data-text="sign_in_with"
+              data-shape="rectangular"
+              data-logo_alignment="left"
+            ></div> */}
 
             <p className={styles.createAccount}>
               Don&#39;t have an account?{" "}
