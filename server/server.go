@@ -22,7 +22,7 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           int(24 * time.Hour.Seconds()),
 	}))
-	
+
 	routers.RegisterAPIHandlers(router, dbMySQL)
 
 	router.Logger.Fatal(router.Start(":8080"))

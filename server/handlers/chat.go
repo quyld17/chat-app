@@ -20,14 +20,24 @@ type IncomingMessage struct {
 }
 
 func GetChatHistory(c echo.Context, db *sql.DB) error {
+	offset := 0
+	limit := 20
+
 	receiverIdStr := c.QueryParam("receiver_id")
 	if receiverIdStr == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "Receiver ID is missing")
 	}
-
 	receiverId, err := strconv.Atoi(receiverIdStr)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Receiver ID")
+	}
+
+	offsetStr := c.QueryParam("offset")
+	if offsetStr != "" {
+		offset, err = strconv.Atoi(offsetStr)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid offset")
+		}
 	}
 
 	senderId := c.Get("user_id").(int)
@@ -40,12 +50,12 @@ func GetChatHistory(c echo.Context, db *sql.DB) error {
 		}
 	}
 
-	chatHistory, err := messages.GetChatHistory(db, roomId, 0)
+	chatHistory, err := messages.GetHistory(db, roomId, offset, limit)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Error retrieving chat history")
 	}
 
-	for i, j := 0, len(chatHistory) - 1; i < j; i, j = i + 1, j - 1 {
+	for i, j := 0, len(chatHistory)-1; i < j; i, j = i+1, j-1 {
 		chatHistory[i], chatHistory[j] = chatHistory[j], chatHistory[i]
 	}
 

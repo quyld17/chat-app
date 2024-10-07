@@ -22,7 +22,7 @@ func Save(db *sql.DB, roomId, senderId int, message string) error {
 	return err
 }
 
-func GetChatHistory(db *sql.DB, roomId, limit int) ([]Messages, error) {
+func GetHistory(db *sql.DB, roomId, offset, limit int) ([]Messages, error) {
 	query := `
 		SELECT 
 			messages.id, 
@@ -37,13 +37,13 @@ func GetChatHistory(db *sql.DB, roomId, limit int) ([]Messages, error) {
 		ORDER BY messages.created_at DESC`
 
 	if limit > 0 {
-		query += " LIMIT ?;"
+		query += " LIMIT ? OFFSET ?;"
 	}
 
 	var rows *sql.Rows
 	var err error
 	if limit > 0 {
-		rows, err = db.Query(query, roomId, limit)
+		rows, err = db.Query(query, roomId, limit, offset)
 	} else {
 		rows, err = db.Query(query, roomId)
 	}
