@@ -2,6 +2,7 @@ CREATE TABLE `users` (
   `id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `username` varchar(255) UNIQUE NOT NULL,
   `password` varchar(255) NOT NULL,
+  `is_google_account` boolean DEFAULT false,
   `created_at` timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
