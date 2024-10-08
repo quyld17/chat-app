@@ -68,8 +68,8 @@ export default function SignInPage() {
   const handleGoogleCallback = (response) => {
     const token = response.credential;
     handleGoogleSignIn(token)
-      .then(() => {
-        localStorage.setItem("token", token);
+      .then((data) => {
+        localStorage.setItem("token", data.token);
         router.push("/chat");
       })
       .catch((error) => {
@@ -140,33 +140,6 @@ export default function SignInPage() {
               }}
             ></Script>
             <div id="google-signin-button"></div>
-
-            {/* <Script
-              src="https://accounts.google.com/gsi/client"
-              async
-              defer
-              onLoad={() => {
-                window.google.accounts.id.initialize({
-                  client_id: GOOGLE_CLIENT_ID,
-                  callback: handleGoogleCallback,
-                });
-              }}
-            ></Script>
-            <div
-              id="g_id_onload"
-              data-client_id={GOOGLE_CLIENT_ID}
-              data-login_uri="https://localhost:3000/chat"
-              data-auto_prompt="false"
-            ></div>
-            <div
-              className="g_id_signin"
-              data-type="standard"
-              data-size="large"
-              data-theme="outline"
-              data-text="sign_in_with"
-              data-shape="rectangular"
-              data-logo_alignment="left"
-            ></div> */}
 
             <p className={styles.createAccount}>
               Don&#39;t have an account?{" "}

@@ -37,8 +37,8 @@ export default function Chat() {
     }
     setToken(storedToken);
     const decodedToken = DecodeToken(storedToken);
-    if (decodedToken && decodedToken.user_id) {
-      setUsername(decodedToken.username);
+    if (decodedToken) {
+      setUsername(decodedToken.name);
     }
     CheckTokenExpireTime(handleSignOut, decodedToken);
   }, []);
