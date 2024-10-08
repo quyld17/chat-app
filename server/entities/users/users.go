@@ -46,7 +46,7 @@ func Authenticate(account Users, db *sql.DB) error {
 func Create(newUser Users, db *sql.DB) error {
 	_, err := db.Exec(`
         INSERT INTO users (username, password) 
-        VALUES (?, ?)
+        VALUES (?, ?);
     `, newUser.Username, newUser.Password)
 	if err != nil {
 		return err
@@ -75,7 +75,7 @@ func GetOnlineList(c echo.Context, db *sql.DB, userId int) ([]Users, error) {
 				users.username
 		FROM status
 		JOIN users ON status.user_id = users.id
-		WHERE status.user_id != ?;`, 
+		WHERE status.user_id != ?;`,
 		userId)
 	if err != nil {
 		return nil, err
@@ -93,4 +93,28 @@ func GetOnlineList(c echo.Context, db *sql.DB, userId int) ([]Users, error) {
 	}
 
 	return list, nil
+}
+
+func CheckOrCreateGoogleAccount(c echo.Context, db *sql.DB, email string) error {
+	var userID int
+	err := db.QueryRow(`
+		SELECT id
+		FROM users
+		WHERE username = ?;
+	`, email).Scan(&userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			_, err = db.Exec(`
+				INSERT INTO users (username, password, is_google_account)
+				VALUES (?, "0", 1);
+			`, email)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }

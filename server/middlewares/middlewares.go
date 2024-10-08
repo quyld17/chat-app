@@ -33,7 +33,7 @@ func JWTAuthorize(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: Invalid token")
 		}
 
-		username := jwtService.GetClaims(token, "username")
+		username := jwtService.GetClaims(token, "name")
 		if username == "" {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid token claims: Missing username")
 		}

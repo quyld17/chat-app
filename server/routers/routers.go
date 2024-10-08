@@ -15,6 +15,9 @@ func RegisterAPIHandlers(router *echo.Echo, db *sql.DB) {
 	router.POST("/sign-in", func(c echo.Context) error {
 		return handlers.SignIn(c, db)
 	})
+	router.POST("/google-sign-in", func(c echo.Context) error {
+		return handlers.GoogleSignIn(c, db)
+	})
 
 	router.GET("/online-list", middlewares.JWTAuthorize(func(c echo.Context) error {
 		return handlers.GetOnlineList(c, db)
