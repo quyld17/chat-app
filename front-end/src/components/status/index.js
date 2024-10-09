@@ -14,12 +14,11 @@ export const OnlineStatus = ({ token }) => {
 
     ws.onerror = (err) => {
       console.error("WebSocket error:", err);
-      message.error("Failed to connect to WebSocket server");
+      message.error("Failed to connect to server");
     };
 
     ws.onclose = () => {
       console.log("Disconnected from WebSocket server");
-      message.info("You are now offline");
     };
 
     return () => {

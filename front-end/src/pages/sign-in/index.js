@@ -44,6 +44,17 @@ export default function SignInPage() {
       router.push("/chat");
       return;
     }
+
+    if (window.google) {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCallback,
+      });
+      window.google.accounts.id.renderButton(
+        document.getElementById("google-signin-button"),
+        { shape: "pill", size: "large" }
+      );
+    }
   }, []);
 
   const {
@@ -60,7 +71,6 @@ export default function SignInPage() {
         })
         .catch((error) => {
           console.log("Error signing in: ", error);
-          message.error("Sign-In failed. Please try again.");
         });
     }
   };
@@ -74,7 +84,6 @@ export default function SignInPage() {
       })
       .catch((error) => {
         console.error("Google token validation failed:", error);
-        message.error("Google Sign-In failed. Please try again.");
       });
   };
 
@@ -135,7 +144,7 @@ export default function SignInPage() {
                 });
                 window.google.accounts.id.renderButton(
                   document.getElementById("google-signin-button"),
-                  { size: "large" }
+                  { shape: "pill", size: "large" }
                 );
               }}
             ></Script>
