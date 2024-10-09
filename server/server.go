@@ -12,6 +12,7 @@ import (
 
 func main() {
 	dbMySQL := databases.NewMySQL()
+	dbRedis := databases.NewRedis()
 
 	router := echo.New()
 	router.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -23,7 +24,7 @@ func main() {
 		MaxAge:           int(24 * time.Hour.Seconds()),
 	}))
 
-	routers.RegisterAPIHandlers(router, dbMySQL)
+	routers.RegisterAPIHandlers(router, dbMySQL, dbRedis)
 
 	router.Logger.Fatal(router.Start(":8080"))
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"log"
@@ -12,6 +13,7 @@ import (
 	"github.com/quyld17/chat-app/entities/messages"
 	"github.com/quyld17/chat-app/entities/rooms"
 	"github.com/quyld17/chat-app/middlewares"
+	"github.com/redis/go-redis/v9"
 )
 
 type IncomingMessage struct {
@@ -62,9 +64,11 @@ func GetChatHistory(c echo.Context, db *sql.DB) error {
 	return c.JSON(http.StatusOK, chatHistory)
 }
 
-var userConnections = make(map[int][]*websocket.Conn)
+// var userConnections = make(map[int][]*websocket.Conn)
 
-func Chat(c echo.Context, db *sql.DB) error {
+var ctx = context.Background()
+
+func Chat(c echo.Context, db *sql.DB, dbRedis *redis.Client) error {
 	ws, err := middlewares.Upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		log.Printf("WebSocket upgrade failed: %v", err)
@@ -74,9 +78,20 @@ func Chat(c echo.Context, db *sql.DB) error {
 
 	senderId := c.Get("user_id").(int)
 
-	userConnections[senderId] = append(userConnections[senderId], ws)
+	// userConnections[senderId] = append(userConnections[senderId], ws)
 
-	defer delete(userConnections, senderId)
+	// defer delete(userConnections, senderId)
+
+	err = dbRedis.SAdd(ctx, "user:"+strconv.Itoa(senderId)+":connections", ws.RemoteAddr().String()).Err()
+	if err != nil {
+		log.Printf("Error storing user connection in Redis: %v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error storing connection")
+	}
+
+	defer func() {
+		// Remove the connection when the WebSocket closes
+		dbRedis.SRem(ctx, "user:"+strconv.Itoa(senderId)+":connections", ws.RemoteAddr().String())
+	}()
 
 	for {
 		var incomingMsg IncomingMessage
@@ -86,14 +101,13 @@ func Chat(c echo.Context, db *sql.DB) error {
 			middlewares.SendWebSocketError(ws, "Error reading message")
 			break
 		}
-
 		if err := json.Unmarshal(msg, &incomingMsg); err != nil {
 			log.Printf("Error parsing message: %v", err)
 			middlewares.SendWebSocketError(ws, "Invalid message format")
 			continue
 		}
-		receiverId := incomingMsg.ReceiverId
 
+		receiverId := incomingMsg.ReceiverId
 		roomId, err := rooms.GetId(db, receiverId, senderId)
 		if err != nil {
 			log.Printf("Error retrieving room ID: %v", err)
@@ -113,11 +127,33 @@ func Chat(c echo.Context, db *sql.DB) error {
 			"message":   incomingMsg.Message,
 		}
 
-		if connections, ok := userConnections[receiverId]; ok {
-			for _, conn := range connections {
-				if err := conn.WriteJSON(response); err != nil {
-					log.Printf("Error sending new message to receiver: %v", err)
-				}
+		// if connections, ok := userConnections[receiverId]; ok {
+		// 	for _, conn := range connections {
+		// 		if err := conn.WriteJSON(response); err != nil {
+		// 			log.Printf("Error sending new message to receiver: %v", err)
+		// 		}
+		// 	}
+		// }
+
+		receiverConnections, err := dbRedis.SMembers(ctx, "user:"+strconv.Itoa(receiverId)+":connections").Result()
+		if err != nil {
+			log.Printf("Error retrieving connections from Redis: %v", err)
+			return nil
+		}
+
+		// Iterate through each connection and send the message
+		for _, connAddr := range receiverConnections {
+			// Create a temporary WebSocket connection for each address
+			// This is a simulation; normally, you'd need to manage these connections separately
+			tempConn, _, err := websocket.DefaultDialer.Dial("ws://"+connAddr, nil)
+			if err != nil {
+				log.Printf("Error connecting to receiver: %v", err)
+				continue
+			}
+			defer tempConn.Close()
+
+			if err := tempConn.WriteJSON(response); err != nil {
+				log.Printf("Error sending new message to receiver: %v", err)
 			}
 		}
 	}
