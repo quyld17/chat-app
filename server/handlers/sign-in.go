@@ -25,6 +25,14 @@ func SignIn(c echo.Context, db *sql.DB) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, err)
 	}
 
+	isGoogleAccount, err := users.CheckIsGoogleAccount(c, db, account.Username)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, err)
+	}
+	if isGoogleAccount == 1 {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid username or password! Please try again.")
+	}
+
 	userId, err := users.GetIdByUsername(c, db, account.Username)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)

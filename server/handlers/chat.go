@@ -62,7 +62,7 @@ func GetChatHistory(c echo.Context, db *sql.DB) error {
 	return c.JSON(http.StatusOK, chatHistory)
 }
 
-var userConnections = make(map[int]*websocket.Conn)
+var userConnections = make(map[int][]*websocket.Conn)
 
 func Chat(c echo.Context, db *sql.DB) error {
 	ws, err := middlewares.Upgrader.Upgrade(c.Response(), c.Request(), nil)
@@ -74,7 +74,7 @@ func Chat(c echo.Context, db *sql.DB) error {
 
 	senderId := c.Get("user_id").(int)
 
-	userConnections[senderId] = ws
+	userConnections[senderId] = append(userConnections[senderId], ws)
 
 	defer delete(userConnections, senderId)
 
@@ -96,7 +96,7 @@ func Chat(c echo.Context, db *sql.DB) error {
 
 		roomId, err := rooms.GetId(db, receiverId, senderId)
 		if err != nil {
-			log.Printf("Error retrieving or creating room: %v", err)
+			log.Printf("Error retrieving room ID: %v", err)
 			middlewares.SendWebSocketError(ws, "Error retrieving room")
 			return nil
 		}
@@ -113,9 +113,11 @@ func Chat(c echo.Context, db *sql.DB) error {
 			"message":   incomingMsg.Message,
 		}
 
-		if receiverWs, ok := userConnections[receiverId]; ok {
-			if err := receiverWs.WriteJSON(response); err != nil {
-				log.Printf("Error sending updated messages to receiver: %v", err)
+		if connections, ok := userConnections[receiverId]; ok {
+			for _, conn := range connections {
+				if err := conn.WriteJSON(response); err != nil {
+					log.Printf("Error sending new message to receiver: %v", err)
+				}
 			}
 		}
 	}

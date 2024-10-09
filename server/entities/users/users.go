@@ -30,7 +30,7 @@ func Authenticate(account Users, db *sql.DB) error {
     `, account.Username).Scan(&storedPassword)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return fmt.Errorf("Invalid username! Please try again.")
+			return fmt.Errorf("Invalid username or password! Please try again.")
 		}
 		return err
 	}
@@ -117,4 +117,18 @@ func CheckOrCreateGoogleAccount(c echo.Context, db *sql.DB, email string) error 
 	}
 
 	return nil
+}
+
+func CheckIsGoogleAccount(c echo.Context, db *sql.DB, username string) (int, error) {
+	var isGoogleAccount int
+	err := db.QueryRow(`
+		SELECT is_google_account
+		FROM users
+		WHERE username = ?;
+	`, username).Scan(&isGoogleAccount)
+	if err != nil {
+		return 0, err
+	}
+
+	return isGoogleAccount, nil
 }
