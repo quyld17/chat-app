@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SignUp(c echo.Context, db *sql.DB) error {
+func SignUp(c echo.Context, dbMySQL *sql.DB) error {
 	var newUser users.Users
 	if err := c.Bind(&newUser); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -21,7 +21,7 @@ func SignUp(c echo.Context, db *sql.DB) error {
 	}
 	newUser.Password = string(hashedPassword)
 
-	if err := users.Create(newUser, db); err != nil {
+	if err := users.Create(newUser, dbMySQL); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Account already exists! Please try again.")
 	}
 

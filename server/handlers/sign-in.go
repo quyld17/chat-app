@@ -14,18 +14,18 @@ import (
 	jwtService "github.com/quyld17/chat-app/services/jwt"
 )
 
-func SignIn(c echo.Context, db *sql.DB) error {
+func SignIn(c echo.Context, dbMySQL *sql.DB) error {
 	var account users.Users
 	if err := c.Bind(&account); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	err := users.Authenticate(account, db)
+	err := users.Authenticate(account, dbMySQL)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err)
 	}
 
-	isGoogleAccount, err := users.CheckIsGoogleAccount(c, db, account.Username)
+	isGoogleAccount, err := users.CheckIsGoogleAccount(c, dbMySQL, account.Username)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err)
 	}
@@ -33,7 +33,7 @@ func SignIn(c echo.Context, db *sql.DB) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid username or password! Please try again.")
 	}
 
-	userId, err := users.GetIdByUsername(c, db, account.Username)
+	userId, err := users.GetIdByUsername(c, dbMySQL, account.Username)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
@@ -46,7 +46,7 @@ func SignIn(c echo.Context, db *sql.DB) error {
 	return c.JSON(http.StatusOK, echo.Map{"token": token})
 }
 
-func GoogleSignIn(c echo.Context, db *sql.DB) error {
+func GoogleSignIn(c echo.Context, dbMySQL *sql.DB) error {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("Failed to retrieve credentials. Please try again")
@@ -68,12 +68,12 @@ func GoogleSignIn(c echo.Context, db *sql.DB) error {
 	}
 
 	email := payload.Claims["email"].(string)
-	err = users.CheckOrCreateGoogleAccount(c, db, email)
+	err = users.CheckOrCreateGoogleAccount(c, dbMySQL, email)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	userId, err := users.GetIdByUsername(c, db, email)
+	userId, err := users.GetIdByUsername(c, dbMySQL, email)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err)
 	}
