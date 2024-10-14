@@ -1,0 +1,62 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing dependencies...
+      - sudo apt-get update
+      - sudo apt-get install -y jq
+
+  pre_build:
+    commands:
+      - echo Logging in to Docker Hub...
+      - |
+        # Retrieve Docker credentials from Secrets Manager
+        SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id docker/user --query SecretString --output text)
+        DOCKER_USERNAME=$(echo $SECRET_JSON | jq -r '.username')
+        DOCKER_PASSWORD=$(echo $SECRET_JSON | jq -r '.password')
+
+        # Log in to Docker Hub
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+      - echo Retrieving credentials from Secrets Manager
+      - |
+        SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id chat-app/server --query SecretString --output text)
+        echo "DB_HOST=$(echo $SECRET_JSON | jq -r '.DB_HOST')" >> .env-server
+        echo "DB_PORT=$(echo $SECRET_JSON | jq -r '.DB_PORT')" >> .env-server
+        echo "DB_PORT_REDIS=$(echo $SECRET_JSON | jq -r '.DB_PORT_REDIS')" >> .env-server
+        echo "DB_USER=$(echo $SECRET_JSON | jq -r '.DB_USER')" >> .env-server
+        echo "DB_PASSWORD=$(echo $SECRET_JSON | jq -r '.DB_PASSWORD')" >> .env-server
+        echo "DB_NAME=$(echo $SECRET_JSON | jq -r '.DB_NAME')" >> .env-server
+        echo "JWT_SECRET_KEY=$(echo $SECRET_JSON | jq -r '.JWT_SECRET_KEY')" >> .env-server
+        echo "GOOGLE_CLIENT_ID=$(echo $SECRET_JSON | jq -r '.GOOGLE_CLIENT_ID')" >> .env-server
+        echo "GOOGLE_CLIENT_SECRET=$(echo $SECRET_JSON | jq -r '.GOOGLE_CLIENT_SECRET')" >> .env-server
+
+      - |
+        SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id chat-app/client --query SecretString --output text)
+        echo "NEXT_PUBLIC_URL=$(echo $SECRET_JSON | jq -r '.NEXT_PUBLIC_URL')" >> .env-client
+        echo "NEXT_PUBLIC_PORT=$(echo $SECRET_JSON | jq -r '.NEXT_PUBLIC_PORT')" >> .env-client
+        echo "NEXT_PUBLIC_GOOGLE_CLIENT_ID=$(echo $SECRET_JSON | jq -r '.NEXT_PUBLIC_GOOGLE_CLIENT_ID')" >> .env-client
+        echo "NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=$(echo $SECRET_JSON | jq -r '.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET')" >> .env-client
+
+      - cp .env-server ./server/
+      - cp .env-client ./front-end/
+
+  build:
+    commands:
+      - echo Building Docker images...
+      - echo Building Server Docker image...
+      - docker build -t quyld17/chat-app-server:latest ./server
+      - echo Building Front-end Docker image...
+      - docker build -t quyld17/chat-app-front-end:latest ./front-end
+
+  post_build:
+    commands:
+      - echo Pushing Docker images to Docker Hub...
+      - docker push quyld17/chat-app-server:latest
+      - docker push quyld17/chat-app-front-end:latest
+
+artifacts:
+  files:
+    - "**/*"
+  discard-paths: yes

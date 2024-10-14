@@ -1,0 +1,20 @@
+services:
+  front-end:
+    image: quyld17/chat-app-front-end:latest
+    container_name: chat-app-front-end
+    ports:
+      - "80:3000"
+    networks:
+      - chat-app-network
+
+  server:
+    image: quyld17/chat-app-server:latest
+    container_name: chat-app-server
+    ports:
+      - "8080:8080" 
+    networks:
+      - chat-app-network
+
+networks:
+  chat-app-network:
+    driver: bridge
