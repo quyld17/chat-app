@@ -68,15 +68,17 @@ func GoogleSignIn(c echo.Context, dbMySQL *sql.DB) error {
 	}
 
 	email := payload.Claims["email"].(string)
-	err = users.CheckOrCreateGoogleAccount(c, dbMySQL, email)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-
 	userId, err := users.GetIdByUsername(c, dbMySQL, email)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err)
 	}
+	if userId == 0 {
+		userId, err = users.CreateGoogleAccount(c, dbMySQL, email)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+	}
+
 	token, err := jwtService.Generate(email, userId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)

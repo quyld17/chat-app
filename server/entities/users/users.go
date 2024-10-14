@@ -95,28 +95,22 @@ func GetOnlineList(c echo.Context, db *sql.DB, userId int) ([]Users, error) {
 	return list, nil
 }
 
-func CheckOrCreateGoogleAccount(c echo.Context, db *sql.DB, email string) error {
-	var userID int
-	err := db.QueryRow(`
-		SELECT id
-		FROM users
-		WHERE username = ?;
-	`, email).Scan(&userID)
+func CreateGoogleAccount(c echo.Context, db *sql.DB, email string) (int, error) {
+	result, err := db.Exec(`
+		INSERT INTO users (username, password, is_google_account)
+		VALUES (?, "0", 1);
+	`, email)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			_, err = db.Exec(`
-				INSERT INTO users (username, password, is_google_account)
-				VALUES (?, "0", 1);
-			`, email)
-			if err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
+		return 0, err
 	}
 
-	return nil
+	insertedUserId, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	userId := int(insertedUserId)
+
+	return userId, nil
 }
 
 func CheckIsGoogleAccount(c echo.Context, db *sql.DB, username string) (int, error) {
