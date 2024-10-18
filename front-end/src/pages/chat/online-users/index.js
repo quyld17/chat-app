@@ -3,13 +3,13 @@ import handleGetOnlineListAPI from "../../../apis/handlers/online-list";
 import styles from "./styles.module.css";
 import { handleGetChatHistoryAPI } from "@/apis/handlers/chat";
 
-export const OnlineUsers = ({
+export default function OnlineUsers({
   setMessageInput,
   setReceiverId,
   setReceiverUsername,
   setMessages,
   setHasLoadedMessages,
-}) => {
+}) {
   const [list, setList] = useState([]);
 
   useEffect(() => {
@@ -55,4 +55,4 @@ export const OnlineUsers = ({
       </ul>
     </div>
   );
-};
+}

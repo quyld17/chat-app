@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { message } from "antd";
 
 import styles from "./styles.module.css";
-import { OnlineUsers } from "./online-users/index";
-import { OnlineStatus } from "../../components/status/index";
+import OnlineUsers from "./online-users/index";
+import OnlineStatus from "../../components/status/index";
 import {
   CheckTokenExpireTime,
   DecodeToken,

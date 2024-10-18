@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { message } from "antd";
 
-export const OnlineStatus = ({ token }) => {
+export default function OnlineStatus({ token }) {
   useEffect(() => {
     if (!token) return;
 
@@ -28,4 +28,4 @@ export const OnlineStatus = ({ token }) => {
   }, [token]);
 
   return null;
-};
+}

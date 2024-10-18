@@ -65,8 +65,6 @@ func GetChatHistory(c echo.Context, dbMySQL *sql.DB) error {
 
 var userConnections = make(map[int][]*websocket.Conn)
 
-// var ctx = context.Background()
-
 func Chat(c echo.Context, dbMySQL *sql.DB, dbRedis *redis.Client) error {
 	ws, err := middlewares.Upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
@@ -92,16 +90,6 @@ func Chat(c echo.Context, dbMySQL *sql.DB, dbRedis *redis.Client) error {
 			}
 		}
 	}()
-
-	// err = dbRedis.SAdd(ctx, "user:"+strconv.Itoa(senderId)+":connections", ws.RemoteAddr().String()).Err()
-	// if err != nil {
-	// 	log.Printf("Error storing user connection in Redis: %v", err)
-	// 	return echo.NewHTTPError(http.StatusInternalServerError, "Error storing connection")
-	// }
-
-	// defer func() {
-	// 	dbRedis.SRem(ctx, "user:"+strconv.Itoa(senderId)+":connections", ws.RemoteAddr().String())
-	// }()
 
 	for {
 		var incomingMsg IncomingMessage
@@ -144,25 +132,6 @@ func Chat(c echo.Context, dbMySQL *sql.DB, dbRedis *redis.Client) error {
 				}
 			}
 		}
-
-		// receiverConnections, err := dbRedis.SMembers(ctx, "user:"+strconv.Itoa(receiverId)+":connections").Result()
-		// if err != nil {
-		// 	log.Printf("Error retrieving connections from Redis: %v", err)
-		// 	return nil
-		// }
-
-		// for _, connAddr := range receiverConnections {
-		// 	tempConn, _, err := websocket.DefaultDialer.Dial("ws://"+connAddr, nil)
-		// 	if err != nil {
-		// 		log.Printf("Error connecting to receiver: %v", err)
-		// 		continue
-		// 	}
-		// 	defer tempConn.Close()
-
-		// 	if err := tempConn.WriteJSON(response); err != nil {
-		// 		log.Printf("Error sending new message to receiver: %v", err)
-		// 	}
-		// }
 	}
 
 	return nil
