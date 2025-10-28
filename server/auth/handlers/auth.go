@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
 	"auth/entities/users"
 	jwtService "auth/services/jwt"
+
+	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 

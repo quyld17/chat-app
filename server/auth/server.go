@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"auth/routers"
 	"auth/services/databases"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -23,7 +24,7 @@ func main() {
 		MaxAge:           int(24 * time.Hour.Seconds()),
 	}))
 
-	routers.RegisterAPIHandlers(router, dbMySQL	)
+	routers.RegisterAPIHandlers(router, dbMySQL)
 
 	router.Logger.Fatal(router.Start(":8080"))
 }
