@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var userConnections = map[int]map[*websocket.Conn]struct{}{}
+var userConnections = make(map[int]*websocket.Conn)
 
 func SetUpConnection(c echo.Context) error {
 	ws, err := middlewares.Upgrader.Upgrade(c.Response(), c.Request(), nil)
@@ -19,20 +19,21 @@ func SetUpConnection(c echo.Context) error {
 	defer ws.Close()
 
 	senderId := c.Get("user_id").(int)
-	if _, ok := userConnections[senderId]; !ok {
-		userConnections[senderId] = make(map[*websocket.Conn]struct{})
-	}
-	userConnections[senderId][ws] = struct{}{}
+	userConnections[senderId] = ws
 
 	defer func() {
-		if conns, ok := userConnections[senderId]; ok {
-			delete(conns, ws)
-
-			if len(conns) == 0 {
-				delete(userConnections, senderId)
-			}
-		}
+		delete(userConnections, senderId)
+		log.Printf("User %d disconnected", senderId)
 	}()
+
+	for {
+		_, msg, err := ws.ReadMessage()
+		if err != nil {
+			log.Printf("User %d read error: %v", senderId, err)
+			break
+		}
+		log.Printf("Received from %d: %s", senderId, msg)
+	}
 
 	return nil
 }
